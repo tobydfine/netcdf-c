@@ -1752,9 +1752,14 @@ nc_set_log_level(int new_level);
    nc_log_level(NC_TURN_OFF_LOGGING) */
 #define NC_TURN_OFF_LOGGING (-1)
 
+/* Get the current log level. */
+EXTERNL int
+nc_get_log_level(void);
+
 #else /* not LOGGING */
 
 #define nc_set_log_level(e) /**< Get rid of these calls. */
+#define nc_get_log_level() (NC_TURN_OFF_LOGGING)
 
 #endif /* LOGGING */
 

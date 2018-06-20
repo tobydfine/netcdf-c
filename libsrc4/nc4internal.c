@@ -1624,6 +1624,21 @@ nc_set_log_level(int new_level)
    return 0;
 }
 
+
+/**
+ * Use this to get the current global log level.
+ *
+ * @return the current log level
+ * @author Dennis Heimbigner
+ */
+int
+nc_get_log_level(void)
+{
+   if(!nc4_hdf5_initialized)
+      nc4_hdf5_initialize();
+   return nc_log_level;
+}
+
 #define MAX_NESTS 10
 /**
  * @internal Recursively print the metadata of a group.
@@ -1655,7 +1670,6 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
 
    LOG((2, "%s GROUP - %s nc_grpid: %d nvars: %d natts: %d",
         tabs, grp->hdr.name, grp->hdr.id, ncindexsize(grp->vars), ncindexsize(grp->att)));
-
    for(i=0;i<ncindexsize(grp->att);i++) {
       att = (NC_ATT_INFO_T*)ncindexith(grp->att,i);
       if(att == NULL) continue;
@@ -1704,14 +1718,14 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    for(i=0;i<ncindexsize(grp->type);i++)
    {
       if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
-      LOG((2, "%s TYPE - nc_typeid: %d hdf_typeid: 0x%x committed: %d "
-           "name: %s num_fields: %d", tabs, type->hdr.id,
-           type->hdf_typeid, type->size, (int)type->committed, type->hdr.name));
+      LOG((2, "%s TYPE - nc_typeid: %ld hdf_typeid: 0x%x size: %ld committed: %d "
+           "name: %s",
+      tabs, (long)type->hdr.id, type->hdf_typeid, (long)type->size, (int)type->committed, type->hdr.name));
       /* Is this a compound type? */
       if (type->nc_type_class == NC_COMPOUND)
       {
 	 int j;
-         LOG((3, "compound type"));
+         LOG((3, "compound type: num_fields: %d",nclistlength(type->u.c.field)));
 	 for(j=0;j<nclistlength(type->u.c.field);j++) {
 	    field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,j);
             LOG((4, "field %s offset %d nctype %d ndims %d", field->hdr.name,
@@ -1723,9 +1737,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
          LOG((3, "VLEN type"));
          LOG((4, "base_nc_type: %d", type->u.v.base_nc_typeid));
       }
-      else if (type->nc_type_class == NC_OPAQUE)
+      else if (type->nc_type_class == NC_OPAQUE) {
          LOG((3, "Opaque type"));
-      else if (type->nc_type_class == NC_ENUM)
+      } else if (type->nc_type_class == NC_ENUM)
       {
          LOG((3, "Enum type"));
          LOG((4, "base_nc_type: %d", type->u.e.base_nc_typeid));
