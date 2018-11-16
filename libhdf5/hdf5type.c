@@ -11,8 +11,9 @@
  *
  * @author Ed Hartnett
  */
-#include "nc4internal.h"
-#include "nc4dispatch.h"
+
+#include "config.h"
+#include "hdf5internal.h"
 
 /**
  * @internal Determine if two types are equal.
@@ -71,13 +72,11 @@ NC4_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
    /* Not atomic types - so find type1 and type2 information. */
    if ((retval = nc4_find_nc4_grp(ncid1, &grpone)))
       return retval;
-   if (!(type1 = nc4_rec_find_nc_type(grpone->nc4_info,
-                                      typeid1)))
+   if (!(type1 = nclistget(grpone->nc4_info->alltypes, typeid1)))
       return NC_EBADTYPE;
    if ((retval = nc4_find_nc4_grp(ncid2, &grptwo)))
       return retval;
-   if (!(type2 = nc4_rec_find_nc_type(grptwo->nc4_info,
-                                      typeid2)))
+   if (!(type2 = nclistget(grptwo->nc4_info->alltypes, typeid2)))
       return NC_EBADTYPE;
 
    /* Are the two types equal? */
@@ -110,7 +109,7 @@ NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
    NC_GRP_INFO_T *grp;
    NC_GRP_INFO_T *grptwo;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_TYPE_INFO_T *type = NULL;
    char *norm_name;
    int i, retval;
@@ -193,7 +192,7 @@ static int
 add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
               nc_type type_class, nc_type *typeidp)
 {
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_GRP_INFO_T *grp;
    NC_TYPE_INFO_T *type;
    char norm_name[NC_MAX_NAME + 1];

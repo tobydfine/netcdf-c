@@ -17,7 +17,7 @@ extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /** @internal These flags may not be set for open mode. */
 static const int
-ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_MPIIO|NC_MPIPOSIX|NC_DISKLESS|NC_WRITE);
+ILLEGAL_OPEN_FLAGS = (NC_MMAP|NC_64BIT_OFFSET|NC_DISKLESS|NC_WRITE);
 
 /** @internal NetCDF atomic type names. */
 static const char*
@@ -90,7 +90,7 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
  * @author Ed Hartnett
  */
 static int
-hdf4_type_info(NC_HDF5_FILE_INFO_T *h5, int32 hdf4_typeid, nc_type* xtypep,
+hdf4_type_info(NC_FILE_INFO_T *h5, int32 hdf4_typeid, nc_type* xtypep,
                int *endiannessp, size_t *type_sizep, char *type_name)
 {
    int t = 0;
@@ -263,7 +263,7 @@ nc4_set_var_type(nc_type xtype, int endianness, size_t type_size, char *type_nam
  * @author Ed Hartnett
  */
 static int
-hdf4_read_att(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
+hdf4_read_att(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
 {
    NC_HDF4_FILE_INFO_T *hdf4_file;
    NC_ATT_INFO_T *att;   
@@ -342,7 +342,7 @@ hdf4_read_att(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int a)
  * @author Ed Hartnett
  */
 static int
-hdf4_read_dim(NC_HDF5_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int rec_dim_len, int d)
+hdf4_read_dim(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, int rec_dim_len, int d)
 {
    NC_VAR_HDF4_INFO_T *hdf4_var;
    NC_DIM_INFO_T *dim = NULL;
@@ -464,7 +464,7 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
  * @author Ed Hartnett
  */
 static int
-hdf4_read_var(NC_HDF5_FILE_INFO_T *h5, int v)
+hdf4_read_var(NC_FILE_INFO_T *h5, int v)
 {
    NC_HDF4_FILE_INFO_T *hdf4_file;
    NC_VAR_INFO_T *var;
@@ -583,8 +583,6 @@ hdf4_read_var(NC_HDF5_FILE_INFO_T *h5, int v)
  * @param mode The open mode flag.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
- * @param use_parallel Must be 0 for sequential, access. Parallel
- * access not supported for HDF4.
  * @param parameters pointer to struct holding extra data (e.g. for
  * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
@@ -596,19 +594,18 @@ hdf4_read_var(NC_HDF5_FILE_INFO_T *h5, int v)
  */
 int
 NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-             int use_parallel, void *parameters, NC_Dispatch *dispatch,
-             NC *nc_file)
+             void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_HDF4_FILE_INFO_T *hdf4_file;
    int32 num_datasets, num_gatts;
    int32 sdid;
    int v, a;
-   NC_HDF5_FILE_INFO_T* nc4_info = NULL;
+   NC_FILE_INFO_T* nc4_info = NULL;
    int retval = NC_NOERR;
 
    /* Check inputs. */
-   assert(nc_file && path && !use_parallel);
+   assert(nc_file && path);
 
    LOG((1, "%s: path %s mode %d params %x", __func__, path, mode, parameters));
 
@@ -659,7 +656,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */
-   log_metadata_nc(h5->root_grp->nc4_info->controller);
+   log_metadata_nc(h5);
 #endif
 
    return retval;
@@ -679,7 +676,7 @@ NC_HDF4_close(int ncid)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;
-   NC_HDF5_FILE_INFO_T *h5;
+   NC_FILE_INFO_T *h5;
    NC_HDF4_FILE_INFO_T *hdf4_file;
    int retval;
 

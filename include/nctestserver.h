@@ -5,6 +5,8 @@
 #include <curl/curl.h>
 #include "netcdf.h"
 
+#undef FINDTESTSERVER_DEBUG
+
 #define MAXSERVERURL 4096
 #define TIMEOUT 10 /*seconds*/
 #define BUFSIZE 8192 /*bytes*/
@@ -20,16 +22,16 @@ parseServers(const char* remotetestservers)
 {
     char* rts;
     char** servers = NULL;
-    char** list;
+    char** list = NULL;
     char* p;
     char* svc;
     char** l;
     
     list = (char**)malloc(sizeof(char*) * (int)(strlen(remotetestservers)/2));
     if(list == NULL) return NULL;
-    l = list;
     rts = strdup(remotetestservers);
-    if(rts == NULL) {free(list); return NULL;}
+    if(rts == NULL) goto done;
+    l = list;
     p = rts;
     for(;;) {
 	svc = p;
@@ -40,8 +42,11 @@ parseServers(const char* remotetestservers)
 	p++;
     }
     *l = NULL;
-    if(p) free(p);
     servers = list;
+    list = NULL;
+done:
+    if(rts) free(rts);
+    if(list) free(list);
     return servers;
 }
 
@@ -53,27 +58,42 @@ This indicates that the server is up and running.
 Return the complete url for the server plus the path.
 */
 
-char*
+static char*
 nc_findtestserver(const char* path, int isdap4, const char* serverlist)
 {
+    char** svclist;
     char** svc;
     char url[MAXSERVERURL];
+    char* match = NULL;
 
-    if((svc = parseServers(serverlist))==NULL) {
+    if((svclist = parseServers(serverlist))==NULL) {
 	fprintf(stderr,"cannot parse test server list: %s\n",serverlist);
 	return NULL;
     }
-    for(;*svc;svc++) {
-	if(*svc == NULL || strlen(*svc) == 0)
-	    return NULL;
+    for(svc=svclist;*svc;svc++) {
+	if(strlen(*svc) == 0) 
+	    goto done;
         if(path == NULL) path = "";
         if(strlen(path) > 0 && path[0] == '/')
 	    path++;
+	/* Try https: first */
+        snprintf(url,MAXSERVERURL,"https://%s/%s",*svc,path);
+	if(ping(url) == NC_NOERR)
+	    {match = strdup(url); goto done;}
+	/* Try http: next */
         snprintf(url,MAXSERVERURL,"http://%s/%s",*svc,path);
 	if(ping(url) == NC_NOERR)
-	    return strdup(url);
+	    {match = strdup(url); goto done;}
     }
-    return NULL;
+done:
+    /* Free up the envv list of servers */
+    if(svclist != NULL) {    
+        char** p;
+	for(p=svclist;*p;p++)
+	    free(*p);
+	free(svclist);
+    }
+    return match;
 }
 
 #define CERR(expr) if((cstat=(expr)) != CURLE_OK) goto done;
@@ -102,6 +122,10 @@ done:
     return total; /* pretend we captured everything */
 }
 
+/*
+See if a server is responding.
+Return NC_ECURL if the ping fails, NC_NOERR otherwise
+*/
 static int
 ping(const char* url)
 {
@@ -149,7 +173,10 @@ ping(const char* url)
 
 done:
     if(cstat != CURLE_OK) {
-        fprintf(stderr, "curl error: %s", curl_easy_strerror(cstat));
+#ifdef FINDTESTSERVER_DEBUG
+        fprintf(stderr, "curl error: %s; url=%s\n",
+		curl_easy_strerror(cstat),url);
+#endif
 	stat = NC_ECURL;
     }
     if (curl != NULL)

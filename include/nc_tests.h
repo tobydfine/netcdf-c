@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "nc_logging.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
 #include "netcdf.h"
-//#include "err_macros.h"
 
 /** NC_MAX_DIMS for tests.  Allows different NC_MAX_DIMS values
  * without breaking this test with a heap or stack overflow. */

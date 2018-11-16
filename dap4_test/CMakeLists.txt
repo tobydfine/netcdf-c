@@ -9,6 +9,7 @@ ADD_SUBDIRECTORY(cdltestfiles)
 ADD_SUBDIRECTORY(daptestfiles)
 ADD_SUBDIRECTORY(dmrtestfiles)
 ADD_SUBDIRECTORY(nctestfiles)
+ADD_SUBDIRECTORY(misctestfiles)
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
@@ -32,7 +33,7 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(findtestserver4)
 
     IF(BUILD_UTILITIES)
-# disable for now       add_sh_test(dap4_test test_remote)
+      add_sh_test(dap4_test test_remote)
     ENDIF(BUILD_UTILITIES)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 ENDIF(ENABLE_TESTS)
