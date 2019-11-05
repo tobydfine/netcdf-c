@@ -165,7 +165,7 @@ ENABLE_TESTING()
 INCLUDE(CTest)
 
 # Copy the CTest customization file into binary directory, as required.
-FILE(COPY ${CMAKE_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_BINARY_DIR})
+FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
@@ -258,10 +258,10 @@ ENDIF()
 #####
 # System inspection checks
 #####
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/oc2)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libsrc)
-SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_SOURCE_DIR}/libsrc)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/oc2)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
+SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
 
 ################################
 # End Compiler Configuration
@@ -391,17 +391,17 @@ IF(NOT MSVC)
     SET(BUILD_FORTRAN ON)
   ENDIF()
   IF(BUILD_FORTRAN)
-    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
-      "${CMAKE_BINARY_DIR}/postinstall.sh"
+    CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/postinstall.sh.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/postinstall.sh"
       @ONLY)
 
     ADD_CUSTOM_TARGET(build-netcdf-fortran
-      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a build"
+      COMMAND sh -c "${CMAKE_CURRENT_BINARY_DIR}/postinstall.sh -t cmake -a build"
       DEPENDS netcdf
       )
 
     ADD_CUSTOM_TARGET(install-netcdf-fortran
-      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a install"
+      COMMAND sh -c "${CMAKE_CURRENT_BINARY_DIR}/postinstall.sh -t cmake -a install"
       DEPENDS build-netcdf-fortran
       )
 
@@ -1187,8 +1187,8 @@ IF(ENABLE_DOXYGEN)
   ###
   OPTION(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS "Build release documentation.  This is of interest only to the netCDF developers." OFF)
   IF(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS)
-    SET(DOXYGEN_CSS_FILE "${CMAKE_SOURCE_DIR}/docs/release.css" CACHE STRING "")
-    SET(DOXYGEN_HEADER_FILE "${CMAKE_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
+    SET(DOXYGEN_CSS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/docs/release.css" CACHE STRING "")
+    SET(DOXYGEN_HEADER_FILE "${CMAKE_CURRENT_SOURCE_DIR}/docs/release_header.html" CACHE STRING "")
     SET(DOXYGEN_SEARCHENGINE "NO" CACHE STRING "")
     SET(ENABLE_DOXYGEN_SERVER_BASED_SEARCH NO CACHE STRING "")
   ELSE()
@@ -1493,7 +1493,7 @@ MACRO(add_bin_env_temp_large_test prefix F)
       )
   ENDIF()
 
-  ADD_TEST(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
+  ADD_TEST(${prefix}_${F} bash "-c" "TEMP_LARGE=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
   IF(MSVC)
     SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
     SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -1518,7 +1518,7 @@ MACRO(add_bin_env_test prefix F)
       )
   ENDIF()
 
-  ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
+  ADD_TEST(${prefix}_${F} bash "-c" "TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${prefix}_${F}")
   IF(MSVC)
     SET_PROPERTY(TARGET ${prefix}_${F} PROPERTY FOLDER "tests")
   ENDIF()
@@ -1674,7 +1674,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
   ENDIF()
 ENDMACRO()
 
@@ -2007,26 +2007,26 @@ FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
 #####
 # Build test_common.sh
 #####
-SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_SOURCE_DIR}/test_common.in)
-SET(TOPSRCDIR "${CMAKE_SOURCE_DIR}")
-SET(TOPBUILDDIR "${CMAKE_BINARY_DIR}")
-configure_file(${CMAKE_SOURCE_DIR}/test_common.in ${CMAKE_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
+SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
+SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
+SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 #####
 # Build nc_test4/findplugin.sh
 #####
 SET(ISCMAKE "1")
-configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
 IF(ENABLE_EXAMPLES)
-configure_file(${CMAKE_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
 #####
 # Build ncdap_test|dap4_test/findtestserver[4].c
 #####
-configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files
