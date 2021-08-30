@@ -17,7 +17,7 @@ int numTypes;  /* number of netCDF data types to test */
  * the netCDF-3 specification for all user-level functions in an
  * implementation of the netCDF library.
  *
- * Files:
+ * Files_test:
  * The read-only tests read files:
  *     test.nc (see below)
  *     tests.h (used merely as an example of a non-netCDF file)
